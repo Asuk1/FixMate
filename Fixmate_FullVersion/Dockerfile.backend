@@ -1,0 +1,23 @@
+FROM node:20
+
+WORKDIR /usr/src/app
+
+# Copier package.json et package-lock.json
+COPY package*.json ./
+
+# Installer les dépendances
+RUN npm install
+
+# Copier le code backend
+COPY ./node_api ./node_api
+
+# Copier le script wait-for-mysql
+COPY wait-for-mysql.sh ./
+RUN chmod +x wait-for-mysql.sh
+
+# Installer netcat pour wait-for-mysql.sh
+RUN apt-get update && apt-get install -y netcat-traditional && rm -rf /var/lib/apt/lists/*
+
+EXPOSE 3000
+
+CMD ["./wait-for-mysql.sh", "node", "node_api/server.js"]

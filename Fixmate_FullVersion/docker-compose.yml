@@ -1,0 +1,49 @@
+volumes:
+  db_data:
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: fixmate_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: fixmate
+      MYSQL_USER: fixmate
+      MYSQL_PASSWORD: root
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: fixmate_backend
+    ports:
+      - "4000:3000"
+    volumes:
+      - ./node_api:/usr/src/app/node_api
+      - ./uploads:/var/www/fixmate/uploads
+    environment:
+      DB_HOST: mysql
+      DB_USER: fixmate
+      DB_PASSWORD: root
+      DB_NAME: fixmate
+      PORT: 3000
+    command: ["./wait-for-mysql.sh", "node", "node_api/server.js"]
+    depends_on:
+      - mysql
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: fixmate_frontend
+    ports:
+      - "80:80"
+    environment:
+      VITE_BACKEND_URL: http://backend:3000
+    depends_on:
+      - backend

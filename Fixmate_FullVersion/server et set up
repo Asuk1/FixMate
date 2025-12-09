@@ -1,0 +1,24 @@
+const dbConfig = {
+    host: process.env.DB_HOST || 'mysql', // ⚠️ docker-compose service name
+    user: process.env.DB_USER || 'fixmate',
+    password: process.env.DB_PASSWORD || 'root',
+    port: 3306,
+    multipleStatements: true,
+};
+const DB_NAME = process.env.DB_NAME || 'fixmate';
+
+
+  // 2. --- Configuration de la connexion MySQL ---
+  const db = mysql.createConnection({
+  host: process.env.DB_HOST || 'mysql',
+  user: process.env.DB_USER || 'fixmate',
+  password: process.env.DB_PASSWORD || 'root',
+  database: process.env.DB_NAME || 'fixmate',
+  typeCast: function (field, next) {
+    if (field.type === 'TINY' && field.length === 1) {
+      const value = field.string();
+      return value === null ? null : (value === '1' ? 1 : 0);
+    }
+    return next();
+  }
+});
